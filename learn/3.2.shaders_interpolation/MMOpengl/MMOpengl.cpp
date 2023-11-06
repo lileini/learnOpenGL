@@ -16,10 +16,13 @@ GLchar* vertextShader = R"HERE(
 	#version 330 core
 
 	layout(location = 0) in vec3 pos;
+	layout(location = 1) in vec3 color;
 	out vec3 outPos;
+	out vec3 outColor;
 	void main()
 	{
 		outPos = pos;
+		outColor = color;
 		//gl_Position = vec4(pos, 1);
 		gl_Position = vec4(pos.x, pos.y, pos.z, 1);
 	}
@@ -31,11 +34,12 @@ GLchar* fragmentShader = R"HERE(
 
 	out vec4 rgbaColor;
 	in vec3 outPos;
+	in vec3 outColor;
 	uniform vec4 ourColor;
-	uniform vec4 ourColorz;
 	void main()
 	{
-		rgbaColor = ourColor;
+		//rgbaColor = ourColor;
+		rgbaColor = vec4(outColor, 1.0f);
 		//rgbaColor = vec4(outPos, 1.0f);
 	}
 )HERE";
@@ -71,21 +75,29 @@ int main()
 
 	
 
-	float vertextPoints[] = {
-		-0.5f,	-0.5f,	0.0f,//left
-		0.5f,	-0.5f,	0.0f,//right
-		0.0f,	0.5f,	0.0f,//top
-		1.0f,	0.5f,	0.0f,//top
-	};
+    float vertextPoints[] = {
+        -0.5f,	-0.5f,	0.0f,//A
+        0.5f,	-0.5f,	0.0f,//B
+        0.5f,	0.5f,	0.0f,//C
+        -0.5f,	0.5f,	0.0f,//D
+    };
+	//颜色值也会根据ebo位置便宜
+    float colorPoints[] = {
+        1.0f,	0.0f,	0.0f,
+        0.0f,	1.0f,	0.0f,
+        0.0f,	0.0f,	0.0f,
+        0.0f,	0.0f,	1.0f,
+    };
 
 	unsigned int indics[] = {
 		//三角形顺序逆时针
-		0,	1,	2,//第一个三角形
-		1,	3,	2 //第二个三角形
+		0,	1,	3,//第一个三角形
+		1,	2,	3 //第二个三角形
 	};
 
 	MMVAO* vao = new MMVAO();
-	vao->addVertex3D(vertextPoints, std::size(vertextPoints) / 3, 0);
+    vao->addVertex3D(vertextPoints, std::size(vertextPoints) / 3, 0);
+    vao->addVertex3D(colorPoints, std::size(colorPoints) / 3, 1);
 	vao->bindIndex(indics, std::size(indics) / 3 );
 
 	MMProgram* program = new MMProgram(vertextShader, fragmentShader);

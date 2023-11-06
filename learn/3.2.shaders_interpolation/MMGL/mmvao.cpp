@@ -29,8 +29,7 @@ void MMVAO::addVertex3D(float* vertextData, GLsizei vertexCount, int layout)
 	glEnableVertexAttribArray(layout);
 
 	
-	vboList.push_back(vbo);
-	vboList.push_back(vbo);
+    vboList.push_back(vbo);
 	glBindVertexArray(0);
 }
 
