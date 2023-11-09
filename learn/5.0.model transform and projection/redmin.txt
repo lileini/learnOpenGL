@@ -1,0 +1,1 @@
+uniform:可通过外部香shader中传递参数
