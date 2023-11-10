@@ -6,6 +6,9 @@
 #define STB_IMAGE_IMPLEMENTATION 
 #include "stb_image.h"
 #include <iostream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #define STRINGIZE(x) #x
 #define SHADER(shader) "" STRINGIZE(shader)
@@ -24,12 +27,13 @@ GLchar* vertextShader = R"HERE(
 	out vec3 outPos;
 	out vec3 outColor;
 	out vec2 texCoord;
+	uniform mat4 transform;
 	void main()
 	{
 		outPos = pos;
 		outColor = color;
-		//gl_Position = vec4(pos, 1);
-		gl_Position = vec4(pos.x, pos.y, pos.z, 1);
+		gl_Position = transform * vec4(pos, 1);
+		//gl_Position = vec4(pos.x, pos.y, pos.z, 1);
 		texCoord = aTexCoord;
 	}
 	
@@ -63,9 +67,7 @@ GLchar* fragmentShader = R"HERE(
 		vec4 bgColor = texture(texture0, newTexCoord);
 		vec4 fgColor = texture(texture1, newTexCoord);
 		
-		rgbaColor.r = fgColor.r * fgColor.a + bgColor.r*(1-fgColor.a)*bgColor.a;
-		rgbaColor.g = fgColor.g * fgColor.a + bgColor.g*(1-fgColor.a)*bgColor.a;
-		rgbaColor.b = fgColor.b * fgColor.a + bgColor.b*(1-fgColor.a)*bgColor.a;
+		rgbaColor.rgb = fgColor.rgb * fgColor.a + bgColor.rgb*(1-fgColor.a)*bgColor.a;
 		rgbaColor.a = max(fgColor.a ,ceil(1.0 - bgColor.a)*bgColor.a);
 	}
 )HERE";
@@ -205,9 +207,22 @@ int main()
 
 
 	MMProgram* program = new MMProgram(vertextShader, fragmentShader);
-	//program->useProgram();
-	//glUniform1i(glGetUniformLocation(program->getProgramId(), "texture1"), 0);//这里0是GL_TEXTURE0最后的0
-	//glUseProgram(0);
+	program->useProgram();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture0);
+    glUniform1i(glGetUniformLocation(program->getProgramId(), "texture0"), 0);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+    glUniform1i(glGetUniformLocation(program->getProgramId(), "texture1"), 1);
+    glm::mat4 trans(1.0f);
+	trans = glm::translate(trans, glm::vec3(0.2f, 0.2f, 0.0f));
+    trans = glm::scale(trans, glm::vec3(0.5f, 0.5f, 1.0f));
+	trans = glm::rotate(trans, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	glUniformMatrix4fv(glGetUniformLocation(program->getProgramId(), "transform"), 1, GL_FALSE, glm::value_ptr(trans));
+	glUseProgram(0);
+
+	glm::mat4(1.0f);
 	while (!glfwWindowShouldClose(window))
 	{
 		processInput(window);
@@ -216,13 +231,7 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 		program->useProgram();
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture0);
-		glUniform1i(glGetUniformLocation(program->getProgramId(), "texture0"),0);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture1);
-        glUniform1i(glGetUniformLocation(program->getProgramId(), "texture1"), 1);
+		
 		
 		double time = glfwGetTime();
 		float greenValue = sin(time)/2.0f +0.5f;

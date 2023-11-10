@@ -5,6 +5,7 @@ cmake_minimum_required (VERSION 3.8)
 
 project ("MMOpengl")
 
+message(STATUS "GLM included at ${GLM_INCLUDE_DIR}")
 
 # 包含子项目。
 add_subdirectory ("MMGL")
